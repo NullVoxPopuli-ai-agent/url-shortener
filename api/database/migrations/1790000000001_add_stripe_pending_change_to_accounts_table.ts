@@ -6,19 +6,20 @@ export default class extends BaseSchema {
   async up() {
     this.schema.alterTable(this.tableName, (table) => {
       /**
-       * A plan change scheduled for later (a downgrade at the end of the
-       * period). The current price stays in stripe_price_id until Stripe
-       * switches, so the account keeps its current plan until then.
+       * A downgrade applies in Stripe at once, but the account paid for
+       * the higher plan through the end of the period. These remember
+       * that plan and the date it was paid through, so plan checks use
+       * it until then.
        */
-      table.string('stripe_pending_price_id').nullable();
-      table.bigInteger('stripe_pending_at').nullable();
+      table.string('stripe_downgraded_from_price_id').nullable();
+      table.bigInteger('stripe_downgraded_until').nullable();
     });
   }
 
   async down() {
     this.schema.alterTable(this.tableName, (table) => {
-      table.dropColumn('stripe_pending_price_id');
-      table.dropColumn('stripe_pending_at');
+      table.dropColumn('stripe_downgraded_from_price_id');
+      table.dropColumn('stripe_downgraded_until');
     });
   }
 }
